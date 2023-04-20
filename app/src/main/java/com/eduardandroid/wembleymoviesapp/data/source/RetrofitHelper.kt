@@ -19,7 +19,7 @@ const val APIKEY = "api_key"
 @Module
 @InstallIn(SingletonComponent::class)
 object ApiModule {
-    private const val BASE_URL = "https://api.themoviedb.org/3/"
+    private const val BASE_URL = BuildConfig.BASE_URL
 
     @Singleton
     @Provides
@@ -43,7 +43,7 @@ object ApiModule {
                 val defaultHttpUrl = defaultRequest.url
                 val httpUrl = defaultHttpUrl.newBuilder()
                     //.addQueryParameter(TS, TS_VALUE)
-                    .addQueryParameter(APIKEY, "e40a2ee43b9ea00fabcbc158528878f9")
+                    .addQueryParameter(APIKEY, BuildConfig.API_KEY)
                     //.addQueryParameter(HASH, hashSignature)
                     .build()
                 val requestBuilder = defaultRequest.newBuilder().url(httpUrl)

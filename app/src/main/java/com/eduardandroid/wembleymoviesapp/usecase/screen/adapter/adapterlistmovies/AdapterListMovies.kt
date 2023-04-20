@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.eduardandroid.wembleymoviesapp.R
+import com.eduardandroid.wembleymoviesapp.commons.IMAGE_URL
 import com.eduardandroid.wembleymoviesapp.data.model.MovieBody
 import com.eduardandroid.wembleymoviesapp.databinding.ItemMovieBinding
 import javax.inject.Inject
@@ -74,7 +75,7 @@ class AdapterListMovies @Inject constructor():
     inner class ViewHolder(private val binding: ItemMovieBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(movieBody: MovieBody, position: Int) {
             if (movieBody.posterPath != null) {
-                val imagePath = "https://image.tmdb.org/t/p/w500/${movieBody.posterPath}"
+                val imagePath = "$IMAGE_URL${movieBody.posterPath}"
                 Glide.with(mContext)
                     .load(imagePath)
                     .placeholder(ColorDrawable(ContextCompat.getColor(mContext, R.color.dark_gray)))
