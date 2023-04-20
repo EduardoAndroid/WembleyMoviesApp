@@ -34,8 +34,8 @@
                     android:contentDescription="@string/movie_image" />
                 <ImageView
                     android:id="@+id/iv_favorite"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:paddingStart="15dp"
                     android:paddingBottom="15dp"
                     android:paddingTop="5dp"

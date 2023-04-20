@@ -5,4 +5,6 @@
     <string name="favourite">Favoritas</string>
     <string name="add_favorite">Añadido a favoritos</string>
     <string name="remove_favorite">Eliminada de favoritos</string>
+    <string name="search_movie">Buscar pelicula</string>
+    <string name="empty_state_no_movies">No se encontraron peliculas</string>
 </resources>

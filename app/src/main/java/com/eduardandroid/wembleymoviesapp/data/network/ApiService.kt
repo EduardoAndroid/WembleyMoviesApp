@@ -17,4 +17,7 @@ interface ApiService {
 
     @GET("movie/popular")
     suspend fun getListPopularMovies(@QueryMap body: Map<String, String>): Response<MovieParamsBody>
+
+    @GET("search/movie")
+    suspend fun getSearchMovie(@QueryMap body: Map<String, String>): Response<MovieParamsBody>
 }

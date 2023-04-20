@@ -2,18 +2,18 @@ package com.eduardandroid.wembleymoviesapp.usecase.screen.adapter.adapterlistmov
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.eduardandroid.wembleymoviesapp.R
 import com.eduardandroid.wembleymoviesapp.data.model.MovieBody
 import com.eduardandroid.wembleymoviesapp.databinding.ItemMovieBinding
-import com.eduardandroid.wembleymoviesapp.provider.room.roomListMovies.MovieEntity
 import javax.inject.Inject
 
 class AdapterListMovies @Inject constructor():
@@ -41,7 +41,8 @@ class AdapterListMovies @Inject constructor():
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setData(listItems: MutableList<MovieBody>?) {
+    fun setData(listItems: MutableList<MovieBody>?, refreshList: Boolean) {
+        if (refreshList) mListItem.clear()
         listItems?.let { mListItem.addAll(it) }
         notifyDataSetChanged()
     }
@@ -63,14 +64,25 @@ class AdapterListMovies @Inject constructor():
         notifyItemChanged(position)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun setDataSearch(movieBodies: MutableList<MovieBody>) {
+        mListItem.clear()
+        movieBodies.let { mListItem.addAll(it) }
+        notifyDataSetChanged()
+    }
+
     inner class ViewHolder(private val binding: ItemMovieBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(movieBody: MovieBody, position: Int) {
             if (movieBody.posterPath != null) {
                 val imagePath = "https://image.tmdb.org/t/p/w500/${movieBody.posterPath}"
-                Glide.with(mContext).load(imagePath).into(binding.ivMovie)
+                Glide.with(mContext)
+                    .load(imagePath)
+                    .placeholder(ColorDrawable(ContextCompat.getColor(mContext, R.color.dark_gray)))
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .into(binding.ivMovie)
             }
             if (movieBody.isFavorite == true) {
-                binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.teal_200));
+                binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.teal_700));
             } else {
                 binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.white));
             }

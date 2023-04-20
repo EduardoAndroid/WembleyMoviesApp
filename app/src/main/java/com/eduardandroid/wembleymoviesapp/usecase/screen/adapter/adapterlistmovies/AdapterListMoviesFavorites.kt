@@ -59,7 +59,7 @@ class AdapterListMoviesFavorites @Inject constructor():
                 Glide.with(mContext).load(imagePath).into(binding.ivMovie)
             }
             if (movieBody.isFavorite == true) {
-                binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.teal_200));
+                binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.teal_700));
             } else {
                 binding.ivFavorite.setColorFilter(ContextCompat.getColor(mContext, R.color.white));
             }

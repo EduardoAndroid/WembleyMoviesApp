@@ -1,6 +1,8 @@
 package com.eduardandroid.wembleymoviesapp.usecase.screen.moviesList
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +28,9 @@ class ListMoviesFragment: Fragment() {
     @Inject
     lateinit var mAdapter: AdapterListMovies
 
+    private var searchClick = false
+    private var searchQuery: String? = null
+
     companion object {
         fun newInstance() = ListMoviesFragment().apply {
             arguments = Bundle().apply {
@@ -48,13 +53,43 @@ class ListMoviesFragment: Fragment() {
 
         initAdapter()
         initObservers()
+        initListeners()
+    }
+
+    private fun initListeners() {
+        binding.etSearchText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s != null && s.isNotEmpty()) {
+                    searchQuery = s.toString()
+                    viewModel.getSearchListMovies(s.toString(), false)
+                } else {
+                    viewModel.getListMovies(true)
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
     }
 
     private fun initObservers() {
         viewModel.paramMovies.observe(viewLifecycleOwner) {
             when (it) {
                 is ListMoviesViewModel.ResponseMovies.Success -> {
-                    mAdapter.setData(it.movieParamsBody as MutableList<MovieBody>)
+                    searchClick = false
+                    mAdapter.setData(it.movieParamsBody as MutableList<MovieBody>, it.refreshList)
+                }
+                is ListMoviesViewModel.ResponseMovies.SuccessSearch -> {
+                    searchClick = true
+                    mAdapter.setDataSearch(it.movieParamsBody as MutableList<MovieBody>)
+                    if (it.movieParamsBody.isNotEmpty()) {
+                        binding.clEmptyState.visibility = View.GONE
+                    } else {
+                        binding.clEmptyState.visibility = View.VISIBLE
+                    }
+                }
+                is ListMoviesViewModel.ResponseMovies.SuccessSearchPaging -> {
+                    searchClick = true
+                    mAdapter.setData(it.movieParamsBody as MutableList<MovieBody>, false)
                 }
             }
         }
@@ -79,13 +114,18 @@ class ListMoviesFragment: Fragment() {
             layoutManager = GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
             setHasFixedSize(true)
             adapter = mAdapter
-            viewModel.getListMovies()
+            viewModel.getListMovies(false)
 
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     if (!recyclerView.canScrollVertically(1)) {
-                        viewModel.getListMovies()
+                        when (searchClick) {
+                            true -> {
+                                searchQuery?.let { viewModel.getSearchListMovies(it, true) }
+                            }
+                            false -> { viewModel.getListMovies(false) }
+                        }
                     }
                 }
             })
@@ -102,7 +142,7 @@ class ListMoviesFragment: Fragment() {
 
     fun refreshMovie(movieId: Int?, movie: MovieBody) {
         val position = movieId?.let { mAdapter.getPositionForMovie(it) }
-        position?.let { mAdapter.removeSelectionFavorite(it, movie) }
+        position?.let { if (it != -1) mAdapter.removeSelectionFavorite(it, movie) }
         //position?.let { mAdapter.notifyItemChanged(it) }
     }
 }

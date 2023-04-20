@@ -60,9 +60,11 @@ class FavouritesMoviesFragment: Fragment() {
         viewModel.viewParam.observe(viewLifecycleOwner) {
             when (it) {
                 is FavouritesMoviesViewModel.ListMovies.Success -> {
-                    if (it.listMovies != null) {
+                    if (it.listMovies != null && it.listMovies.isNotEmpty()) {
+                        binding.clEmptyState.visibility = View.GONE
                         mAdapter.setData(it.listMovies as MutableList<MovieBody>?)
                     } else {
+                        binding.clEmptyState.visibility = View.VISIBLE
                         Toast.makeText(context, "Parece que no tiene datos", Toast.LENGTH_SHORT).show()
                     }
                 }

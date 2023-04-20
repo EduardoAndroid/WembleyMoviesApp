@@ -4,16 +4,17 @@ import com.eduardandroid.wembleymoviesapp.data.model.MovieParamsBody
 import com.eduardandroid.wembleymoviesapp.data.source.ApiModule
 import javax.inject.Inject
 
-class ListMoviesDataSource @Inject constructor(
+class SearchListMoviesDataSource @Inject constructor(
     private val apiService: ApiService
-    ) : IListSearchMoviesUseCase {
+    ) : IListMoviesUseCase {
 
-    override suspend fun getListPopularMovies(page: Int): Resource<MovieParamsBody?>? {
+    override suspend fun getListPopularMovies(page: Int, query: String): Resource<MovieParamsBody?>? {
         val body = HashMap<String, String>()
         body["language"] = "en-US"
+        body["query"] = query
         body["page"] = page.toString()
         return try {
-            val response = apiService.getListPopularMovies(body)
+            val response = apiService.getSearchMovie(body)
             if (response.isSuccessful) {
                 response.body()?.let {
                     Resource.success(it)
