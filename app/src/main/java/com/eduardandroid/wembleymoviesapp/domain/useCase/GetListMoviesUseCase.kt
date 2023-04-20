@@ -1,4 +1,4 @@
-package com.eduardandroid.wembleymoviesapp.data.usecase
+package com.eduardandroid.wembleymoviesapp.domain.useCase
 
 import com.eduardandroid.wembleymoviesapp.data.model.MovieParamsBody
 import com.eduardandroid.wembleymoviesapp.data.network.Resource

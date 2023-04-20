@@ -9,9 +9,12 @@ import com.eduardandroid.wembleymoviesapp.R
 import com.eduardandroid.wembleymoviesapp.data.model.MovieBody
 import com.eduardandroid.wembleymoviesapp.databinding.ActivityMovieGalleryBinding
 import com.eduardandroid.wembleymoviesapp.usecase.screen.adapter.CustomMoviesPagerAdapter
+import com.eduardandroid.wembleymoviesapp.usecase.screen.favouritesmovies.FavouritesMoviesFragmentRouter
 import com.eduardandroid.wembleymoviesapp.usecase.screen.moviesList.ListMoviesFragment
+import com.eduardandroid.wembleymoviesapp.usecase.screen.moviesList.ListMoviesFragmentRouter
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MovieGalleryActivity : AppCompatActivity(), OnMovieRemoveToFavoritesListener {
@@ -20,6 +23,11 @@ class MovieGalleryActivity : AppCompatActivity(), OnMovieRemoveToFavoritesListen
     val viewModel: MovieGalleryViewModel by viewModels()
 
     private lateinit var mAdapter: CustomMoviesPagerAdapter
+
+    @Inject
+    lateinit var listMoviesFragmentRouter: ListMoviesFragmentRouter
+    @Inject
+    lateinit var favouritesMoviesFragmentRouter: FavouritesMoviesFragmentRouter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +55,7 @@ class MovieGalleryActivity : AppCompatActivity(), OnMovieRemoveToFavoritesListen
 
     private fun initAdapter() {
         binding.viewPager.apply {
-            mAdapter = CustomMoviesPagerAdapter(fragmentManager = supportFragmentManager, lifecycle = lifecycle)
+            mAdapter = CustomMoviesPagerAdapter(fragmentManager = supportFragmentManager, lifecycle = lifecycle, listMoviesFragmentRouter, favouritesMoviesFragmentRouter)
             orientation = ViewPager2.ORIENTATION_HORIZONTAL
             adapter = mAdapter
             registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){

@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eduardandroid.wembleymoviesapp.data.model.MovieBody
 import com.eduardandroid.wembleymoviesapp.data.network.Resource
-import com.eduardandroid.wembleymoviesapp.data.usecase.GetListMoviesUseCase
-import com.eduardandroid.wembleymoviesapp.data.usecase.GetSearchListMoviesUseCase
+import com.eduardandroid.wembleymoviesapp.domain.useCase.GetListMoviesUseCase
+import com.eduardandroid.wembleymoviesapp.domain.useCase.GetSearchListMoviesUseCase
 import com.eduardandroid.wembleymoviesapp.domain.useCase.AddMovieRepositoryLocalUseCase
 import com.eduardandroid.wembleymoviesapp.domain.useCase.GetMovieRepositoryLocalUseCase
 import com.eduardandroid.wembleymoviesapp.provider.room.roomListMovies.useCase.RemoveMovieRepositoryLocalUseCase
@@ -24,21 +24,23 @@ class ListMoviesViewModel @Inject constructor(
     private val getSearchListMoviesUseCase: GetSearchListMoviesUseCase
 ): ViewModel() {
 
-    private val _paramMovies = MutableLiveData<ResponseMovies>()
-    var paramMovies: LiveData<ResponseMovies> = _paramMovies
+    private val _observerMovies = MutableLiveData<ResponseMovies>()
+    var observerMovies: LiveData<ResponseMovies> = _observerMovies
 
-    private val _paramAddMovie = MutableLiveData<MoviesLoval>()
-    var paramAddMovie: LiveData<MoviesLoval> = _paramAddMovie
+    private val _observerAddRemoveMovie = MutableLiveData<MoviesLocal>()
+    var observerAddRemoveMovie: LiveData<MoviesLocal> = _observerAddRemoveMovie
 
     sealed class ResponseMovies {
         data class Success(val movieParamsBody: List<MovieBody>?, val refreshList: Boolean): ResponseMovies()
         data class SuccessSearch(val movieParamsBody: List<MovieBody>?): ResponseMovies()
         data class SuccessSearchPaging(val movieParamsBody: List<MovieBody>?): ResponseMovies()
+        object ErrorLoad: ResponseMovies()
     }
 
-    sealed class MoviesLoval {
-        data class AddMovie(val movieBody: MovieBody): MoviesLoval()
-        data class RemoveMovie(val movieBody: MovieBody): MoviesLoval()
+    sealed class MoviesLocal {
+        data class AddMovie(val movieBody: MovieBody): MoviesLocal()
+        data class RemoveMovie(val movieBody: MovieBody): MoviesLocal()
+        object ErrorLoad: MoviesLocal()
     }
 
     private var pageNumber = 1
@@ -46,43 +48,22 @@ class ListMoviesViewModel @Inject constructor(
 
     fun getListMovies(refreshList: Boolean) {
         viewModelScope.launch {
-            val favoriteMovies = getMovieLocalUseCase.invoke()
-
             when (val response = getListMoviesUseCase.invoke(pageNumber)) {
                 is Resource.Error -> {
-                    val truee = true
+                    _observerMovies.postValue(ResponseMovies.ErrorLoad)
                 }
-                Resource.Loading -> {
-                    val truee = true
-                }
+                Resource.Loading -> { }
                 is Resource.Success -> {
                     if (response.data != null) {
                         response.data.page?.let {
                             pageNumber = it + 1
                         }
-                        val movies = response.data.results?.map { movieBody ->
-                            MovieBody(
-                                posterPath = movieBody.posterPath,
-                                adult = movieBody.adult,
-                                overview = movieBody.overview,
-                                releaseDate = movieBody.releaseDate,
-                                idMovie = movieBody.idMovie,
-                                originalTitle = movieBody.originalTitle,
-                                originalLanguage = movieBody.originalLanguage,
-                                title = movieBody.title,
-                                backdropPath = movieBody.backdropPath,
-                                popularity = movieBody.popularity,
-                                voteCount = movieBody.voteCount,
-                                video = movieBody.video,
-                                voteAverage = movieBody.voteAverage,
-                                isFavorite = favoriteMovies?.any { it.idMovie == movieBody.idMovie }
-                            )
-                        }
-                        _paramMovies.postValue(ResponseMovies.Success(movies, refreshList))
+                        val movies = returnMoviesMap(response.data.results)
+                        _observerMovies.postValue(ResponseMovies.Success(movies, refreshList))
                     }
                 }
                 null -> {
-                    val truee = true
+                    _observerMovies.postValue(ResponseMovies.ErrorLoad)
                 }
             }
         }
@@ -91,24 +72,22 @@ class ListMoviesViewModel @Inject constructor(
     fun addMovieFavorite(movieBody: MovieBody) {
         viewModelScope.launch {
             addMovieUseCase.invoke(movieBody)
-            _paramAddMovie.postValue(MoviesLoval.AddMovie(movieBody))
+            _observerAddRemoveMovie.postValue(MoviesLocal.AddMovie(movieBody))
         }
     }
 
     fun removeMovieFavorite(movieBody: MovieBody) {
         viewModelScope.launch {
             removeMovieUseCase.invoke(movieBody)
-            _paramAddMovie.postValue(MoviesLoval.RemoveMovie(movieBody))
+            _observerAddRemoveMovie.postValue(MoviesLocal.RemoveMovie(movieBody))
         }
     }
 
     fun getSearchListMovies(query: String, paging: Boolean) {
         viewModelScope.launch {
-            val favoriteMovies = getMovieLocalUseCase.invoke()
-
             when (val response = getSearchListMoviesUseCase.invoke(pageNumberSearch, query)) {
                 is Resource.Error -> {
-                    val truee = true
+                    _observerMovies.postValue(ResponseMovies.ErrorLoad)
                 }
                 Resource.Loading -> {
                     val truee = true
@@ -118,35 +97,40 @@ class ListMoviesViewModel @Inject constructor(
                         response.data.page?.let {
                             pageNumberSearch = it + 1
                         }
-                        val movies = response.data.results?.map { movieBody ->
-                            MovieBody(
-                                posterPath = movieBody.posterPath,
-                                adult = movieBody.adult,
-                                overview = movieBody.overview,
-                                releaseDate = movieBody.releaseDate,
-                                idMovie = movieBody.idMovie,
-                                originalTitle = movieBody.originalTitle,
-                                originalLanguage = movieBody.originalLanguage,
-                                title = movieBody.title,
-                                backdropPath = movieBody.backdropPath,
-                                popularity = movieBody.popularity,
-                                voteCount = movieBody.voteCount,
-                                video = movieBody.video,
-                                voteAverage = movieBody.voteAverage,
-                                isFavorite = favoriteMovies?.any { it.idMovie == movieBody.idMovie }
-                            )
-                        }
+                        val movies = returnMoviesMap(response.data.results)
                         if (paging) {
-                            _paramMovies.postValue(ResponseMovies.SuccessSearchPaging(movies))
+                            _observerMovies.postValue(ResponseMovies.SuccessSearchPaging(movies))
                         } else {
-                            _paramMovies.postValue(ResponseMovies.SuccessSearch(movies))
+                            _observerMovies.postValue(ResponseMovies.SuccessSearch(movies))
                         }
                     }
                 }
                 null -> {
-                    val truee = true
+                    _observerMovies.postValue(ResponseMovies.ErrorLoad)
                 }
             }
+        }
+    }
+
+    private suspend fun returnMoviesMap(results: MutableList<MovieBody>?): List<MovieBody>? {
+        val favoriteMovies = getMovieLocalUseCase.invoke()
+        return results?.map { movieBody ->
+            MovieBody(
+                posterPath = movieBody.posterPath,
+                adult = movieBody.adult,
+                overview = movieBody.overview,
+                releaseDate = movieBody.releaseDate,
+                idMovie = movieBody.idMovie,
+                originalTitle = movieBody.originalTitle,
+                originalLanguage = movieBody.originalLanguage,
+                title = movieBody.title,
+                backdropPath = movieBody.backdropPath,
+                popularity = movieBody.popularity,
+                voteCount = movieBody.voteCount,
+                video = movieBody.video,
+                voteAverage = movieBody.voteAverage,
+                isFavorite = favoriteMovies?.any { it.idMovie == movieBody.idMovie }
+            )
         }
     }
 }

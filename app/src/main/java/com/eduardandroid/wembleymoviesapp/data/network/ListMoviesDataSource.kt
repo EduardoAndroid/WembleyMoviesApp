@@ -1,7 +1,7 @@
 package com.eduardandroid.wembleymoviesapp.data.network
 
 import com.eduardandroid.wembleymoviesapp.data.model.MovieParamsBody
-import com.eduardandroid.wembleymoviesapp.data.source.ApiModule
+import com.eduardandroid.wembleymoviesapp.domain.interfaceUseCase.IListSearchMoviesUseCase
 import javax.inject.Inject
 
 class ListMoviesDataSource @Inject constructor(

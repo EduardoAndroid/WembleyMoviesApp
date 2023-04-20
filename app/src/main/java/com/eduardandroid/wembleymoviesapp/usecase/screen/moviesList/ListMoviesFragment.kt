@@ -28,7 +28,6 @@ class ListMoviesFragment: Fragment() {
     @Inject
     lateinit var mAdapter: AdapterListMovies
 
-    private var searchClick = false
     private var searchQuery: String? = null
 
     companion object {
@@ -51,61 +50,73 @@ class ListMoviesFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initAdapter()
         initObservers()
         initListeners()
+        initAdapter()
     }
 
     private fun initListeners() {
         binding.etSearchText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (s != null && s.isNotEmpty()) {
-                    searchQuery = s.toString()
-                    viewModel.getSearchListMovies(s.toString(), false)
-                } else {
-                    viewModel.getListMovies(true)
-                }
+                setTextWatcherSearchMovie(s)
             }
             override fun afterTextChanged(s: Editable?) {}
         })
     }
 
+    private fun setTextWatcherSearchMovie(s: CharSequence?) {
+        if (s != null && s.isNotEmpty()) {
+            searchQuery = s.toString()
+            viewModel.getSearchListMovies(s.toString(), false)
+        } else {
+            searchQuery = null
+            viewModel.getListMovies(true)
+        }
+    }
+
     private fun initObservers() {
-        viewModel.paramMovies.observe(viewLifecycleOwner) {
+        viewModel.observerMovies.observe(viewLifecycleOwner) {
             when (it) {
                 is ListMoviesViewModel.ResponseMovies.Success -> {
-                    searchClick = false
                     mAdapter.setData(it.movieParamsBody as MutableList<MovieBody>, it.refreshList)
                 }
                 is ListMoviesViewModel.ResponseMovies.SuccessSearch -> {
-                    searchClick = true
                     mAdapter.setDataSearch(it.movieParamsBody as MutableList<MovieBody>)
-                    if (it.movieParamsBody.isNotEmpty()) {
-                        binding.clEmptyState.visibility = View.GONE
-                    } else {
-                        binding.clEmptyState.visibility = View.VISIBLE
-                    }
+                    visibleEmptyState(it.movieParamsBody.isEmpty())
                 }
                 is ListMoviesViewModel.ResponseMovies.SuccessSearchPaging -> {
-                    searchClick = true
                     mAdapter.setData(it.movieParamsBody as MutableList<MovieBody>, false)
+                }
+                ListMoviesViewModel.ResponseMovies.ErrorLoad -> {
+                    visibleEmptyState(true)
                 }
             }
         }
-        viewModel.paramAddMovie.observe(viewLifecycleOwner) {
+        viewModel.observerAddRemoveMovie.observe(viewLifecycleOwner) {
             when (it) {
-                is ListMoviesViewModel.MoviesLoval.AddMovie -> {
+                is ListMoviesViewModel.MoviesLocal.AddMovie -> {
                     if (it.movieBody.isFavorite == true) {
                         Toast.makeText(context, resources.getText(R.string.add_favorite), Toast.LENGTH_SHORT).show()
                     }
                 }
-                is ListMoviesViewModel.MoviesLoval.RemoveMovie -> {
+                is ListMoviesViewModel.MoviesLocal.RemoveMovie -> {
                     if (it.movieBody.isFavorite == false) {
                         Toast.makeText(context, resources.getText(R.string.remove_favorite), Toast.LENGTH_SHORT).show()
                     }
                 }
+                ListMoviesViewModel.MoviesLocal.ErrorLoad -> {
+                    visibleEmptyState(true)
+                }
             }
+        }
+    }
+
+    private fun visibleEmptyState(isVisible: Boolean) {
+        if (isVisible) {
+            binding.clEmptyState.visibility = View.VISIBLE
+        } else {
+            binding.clEmptyState.visibility = View.GONE
         }
     }
 
@@ -120,11 +131,10 @@ class ListMoviesFragment: Fragment() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     if (!recyclerView.canScrollVertically(1)) {
-                        when (searchClick) {
-                            true -> {
-                                searchQuery?.let { viewModel.getSearchListMovies(it, true) }
-                            }
-                            false -> { viewModel.getListMovies(false) }
+                        if (searchQuery != null) {
+                            viewModel.getSearchListMovies(searchQuery!!, true)
+                        } else {
+                            viewModel.getListMovies(false)
                         }
                     }
                 }
@@ -143,6 +153,5 @@ class ListMoviesFragment: Fragment() {
     fun refreshMovie(movieId: Int?, movie: MovieBody) {
         val position = movieId?.let { mAdapter.getPositionForMovie(it) }
         position?.let { if (it != -1) mAdapter.removeSelectionFavorite(it, movie) }
-        //position?.let { mAdapter.notifyItemChanged(it) }
     }
 }
