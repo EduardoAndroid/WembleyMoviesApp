@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Wembley Movies App</string>
     <string name="movie_image">Imagen de pelicula</string>
     <string name="movies">Peliculas</string>
     <string name="favourite">Favoritas</string>

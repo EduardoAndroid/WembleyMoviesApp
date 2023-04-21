@@ -20,14 +20,48 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"https://api.themoviedb.org/3/\"")
-        buildConfigField("String", "API_KEY", "\"e40a2ee43b9ea00fabcbc158528878f9\"")
+        //buildConfigField("String", "BASE_URL", "\"https://api.themoviedb.org/3/\"")
+        //buildConfigField("String", "API_KEY", "\"e40a2ee43b9ea00fabcbc158528878f9\"")
+    }
+
+    signingConfigs {
+        release {
+            keyAlias 'key0'
+            keyPassword '1234edu'
+            storeFile file('keystorefile.jks')
+            storePassword '1234edu'
+        }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+
+            buildConfigField "String", "API_KEY", "\"e40a2ee43b9ea00fabcbc158528878f9\""
+            buildConfigField "String", "BASE_URL", "\"https://api.themoviedb.org/3/\""
+
+            resValue "string", "app_name", "Wembley Movies App"
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            debuggable true
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-DEV'
+
+            buildConfigField "String", "API_KEY", "\"e40a2ee43b9ea00fabcbc158528878f9\""
+            buildConfigField "String", "BASE_URL", "\"https://api.themoviedb.org/3/\""
+
+            resValue "string", "app_name", "Wembley Movies App Dev"
         }
     }
     compileOptions {
