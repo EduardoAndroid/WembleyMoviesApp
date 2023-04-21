@@ -33,7 +33,7 @@ class ListMoviesFragment: Fragment() {
     companion object {
         fun newInstance() = ListMoviesFragment().apply {
             arguments = Bundle().apply {
-                //putString(KEY_LINK_USER, link)
+
             }
         }
     }

@@ -58,7 +58,8 @@ class ListMoviesViewModel @Inject constructor(
                         response.data.page?.let {
                             pageNumber = it + 1
                         }
-                        val movies = returnMoviesMap(response.data.results)
+                        val favoriteMovies = getMovieLocalUseCase.invoke()
+                        val movies = returnMoviesMap(response.data.results, favoriteMovies)
                         _observerMovies.postValue(ResponseMovies.Success(movies, refreshList))
                     }
                 }
@@ -97,7 +98,8 @@ class ListMoviesViewModel @Inject constructor(
                         response.data.page?.let {
                             pageNumberSearch = it + 1
                         }
-                        val movies = returnMoviesMap(response.data.results)
+                        val favoriteMovies = getMovieLocalUseCase.invoke()
+                        val movies = returnMoviesMap(response.data.results, favoriteMovies)
                         if (paging) {
                             _observerMovies.postValue(ResponseMovies.SuccessSearchPaging(movies))
                         } else {
@@ -112,8 +114,10 @@ class ListMoviesViewModel @Inject constructor(
         }
     }
 
-    private suspend fun returnMoviesMap(results: MutableList<MovieBody>?): List<MovieBody>? {
-        val favoriteMovies = getMovieLocalUseCase.invoke()
+    fun returnMoviesMap(
+        results: MutableList<MovieBody>?,
+        favoriteMovies: List<MovieBody>?
+    ): List<MovieBody>? {
         return results?.map { movieBody ->
             MovieBody(
                 posterPath = movieBody.posterPath,

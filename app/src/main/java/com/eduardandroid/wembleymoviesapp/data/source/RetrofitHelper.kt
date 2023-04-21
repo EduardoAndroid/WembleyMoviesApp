@@ -39,12 +39,9 @@ object ApiModule {
             .Builder()
             .addInterceptor { chain ->
                 val defaultRequest = chain.request()
-                //val hashSignature = "$TS_VALUE${"9bddb7890d5dbb3d830343b38e812f99f371eb4a"}${"4e38e3a0616ee00391ac9395aea98636"}".md5()//"$TS_VALUE${BuildConfig.PRIVATE_API_KEY_VALUE}${BuildConfig.PUBLIC_API_KEY_VALUE}".md5()
                 val defaultHttpUrl = defaultRequest.url
                 val httpUrl = defaultHttpUrl.newBuilder()
-                    //.addQueryParameter(TS, TS_VALUE)
                     .addQueryParameter(APIKEY, BuildConfig.API_KEY)
-                    //.addQueryParameter(HASH, hashSignature)
                     .build()
                 val requestBuilder = defaultRequest.newBuilder().url(httpUrl)
                 chain.proceed(requestBuilder.build())
